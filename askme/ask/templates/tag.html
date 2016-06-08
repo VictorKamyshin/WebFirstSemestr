@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+{% extends "header_pag.html" %}
+{% block content%}
+<p class="lead my-lead">Tag: {{ tag }}</p> 
+<div class="hot-header">
+</div>
+<ul>
+     {% for question in questions %}
+     <div class="main-page-question-enviroment">     
+	  <div class="col-md-2">
+	   <img src="/static/media/{{question.authors.users_profile.avatar}}" class="img-circle profile-avatar-mainpage-question"> 
+	  </div>
+      <div class="col-md-10">
+	   <div><h2> {{ question.title }} ? </h2></div>
+	   <div> {{ question.text }}</div>
+      </div>
+   {% load staticfiles %}
+      <img src="{% static "img/like.png" %}" class="btn-like"  data-q_id="{{question.id}}" data-type="like">
+	  <span class="like-counter" id = "like-counter-{{question.id}}" > {{question.get_like}} </span>
+    {% load staticfiles %}
+      <img src="{% static "img/dislike.png" %}" class="btn-like" data-q_id="{{question.id}}" data-type="hate">
+      <span class="mainpage-question-answers-link"><a href="{%url 'question_answers'  %}{{ question.id }}"  > answers({{question.answ.count}})</a></span>
+	  <span class="mainpage-question-tags-header"> Tags:</span>
+          {% for question_tag in question.question_tags.all %}  
+          <span class="mainpage-question-tags-tag"><b><a href="{% url 'tag'%}/{{question_tag.title}}"> {{ question_tag.title}}</a></b></span>
+      {% endfor %}     		   
+     </div> 
+    {% endfor %}
+</ul>
+{% endblock %}
+
+
+

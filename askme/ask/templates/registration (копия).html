@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+{% extends "header.html" %}
+{% block content%}
+
+<p class="lead my-lead">Registration</p> 
+<div class="hot-header">
+</div>
+<div class="settings settings-first-part">
+          <form action="{% url 'index' %}" method="POST"> {% csrf_token %}
+	   <div class="col-md-4"> 
+	    <div>
+	     <label class="my-label"> Login</label>
+	    </div>
+	   </div>
+       <div class="col-md-8">	  
+        <div class="input-group">
+         <input type="text" name = "login" class="form-control" placeholder="Your login" aria-describedby="basic-addon1">
+        </div>
+	   </div>
+	  </div>
+	  <div class="divider"> </div>
+	  <div class="settings settings-not-first-part">
+	   <div class="col-md-4"> 
+	    <label class="my-label">E-mail</label>
+	  	<div class="divider"> </div>
+	   </div>
+       <div class="col-md-8">	  
+        <div class="input-group">
+         <input type="text" name = "email" class="form-control" placeholder="expample@mail.ru" aria-describedby="basic-addon1">
+        </div>
+	   </div>
+	  </div>
+	  <div class="divider"> </div>
+	  <div class="settings settings-not-first-part">
+	   <div class="col-md-4"> 
+	    <label class="my-label">Nickname</label>
+	    <div class="divider"> </div>
+	   </div>
+       <div class="col-md-8">	  
+        <div class="input-group">
+         <input type="text" name = "nickname" class="form-control" placeholder="Your nickname" aria-describedby="basic-addon1">
+        </div>
+	   </div>
+	  </div>
+	  <div class="divider"> </div>
+	   <div class="settings settings-not-first-part">
+	    <div class="col-md-4"> 
+	     <label class="my-label">Password</label>
+	  	 <div class="divider"> </div>
+	    </div>
+        <div class="col-md-8">	  
+         <div class="input-group">
+          <input type="password" name = "password" class="form-control" placeholder="Enter passwod" aria-describedby="basic-addon1">
+         </div>
+	    </div>
+	   </div>
+	   <div class="divider"> </div>
+	    <div class="settings settings-not-first-part">
+	     <div class="col-md-4"> 
+	      <label class="my-label">Repeat password</label>
+	  	  <div class="settings-divider"> </div>
+	     </div>
+         <div class="col-md-8">	  
+          <div class="input-group">
+           <input type="password" name = "rep_password" class="form-control" placeholder="Repeat passwod" aria-describedby="basic-addon1">
+          </div>
+	     </div>
+	    </div>
+	    <div class="divider"> </div>
+	    <div class="settings settings-not-first-part">
+	     <div class="col-md-4"> 
+	      <label class="my-label">Upload avatar</label>
+	  	  <div class="settings-divider"> </div>
+	     </div>
+         <div class="col-md-8">	  
+	      <div class="input-group settings-avatar-input">
+           <input type="text" name = "avatar_url" class="form-control" placeholder="c:\avatar.jpg">
+            <span class="input-group-btn">
+             <button class="btn btn-default" type="button">Browse!</button>
+            </span>
+          </div><!-- /input-group -->
+		  <button type="submit" class="btn btn-lg btn-success btn-register">Register!</button> 	   
+	     </div>
+            </form>
+	    </div>
+{% endblock %}
+
+
+
+{% block best_tags %}
+    {% for tag in best_tags %}
+    <div class="tags-cloud-tag">
+        {% if tag.tag_size == 0 %}<font class="medium-size-tag">
+        {% endif %} 
+        {% if tag.tag_size == 1 %}<font class="big-size-tag">
+        {% endif %}
+        {% if tag.tag_size == 2 %}<font class="very-big-size-tag">
+        {% endif %}
+        <a>
+        {% if tag.tag_color == 0 %}<font color="green">
+        {% endif %} 
+        {% if tag.tag_color == 1 %}<font color="blue">
+        {% endif %}
+        {% if tag.tag_color == 2 %}<font color="red">
+        {% endif %}
+        {{tag.tag_text}}</font></a></font></div> 
+    {% endfor %}
+{% endblock %}
+
+
+{% block best_member%}
+<ul class="list-unstyled">
+    {% for member in members %}
+		 <li> <a><p><u> {{ member.member }} </u></p></a> </li>
+    {% endfor %}
+</ul> 
+{% endblock %}
+
+

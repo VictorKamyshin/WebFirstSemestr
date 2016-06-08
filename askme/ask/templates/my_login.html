@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+{% extends "header.html" %}
+{% block content%}
+
+<p class="lead my-lead">LOGIN</p> 
+<div class="hot-header">
+</div>
+
+<div class="wrong-password"> Sorry, wrong account </div>
+       <div class="settings log-in-columns">
+        <form action="login/?{{% temp %}}" method="POST">  {% csrf_token %}
+	    <div class="col-md-4"> 
+	     <label class="log-in-label"> Login</label>
+	    </div>
+        <div class="col-md-8">
+         <div class="input-group">
+          <input type="text" name = "username" class="form-control" placeholder="Your login" aria-describedby="basic-addon1">
+         </div>
+	    </div>
+	   </div>
+	   <div class="divider"> </div>
+       <div class="settings log-in-label-column">
+	    <div class="col-md-4"> 
+	     <label class="my-label"> Password</label>
+	    </div>
+        <div class="col-md-8">	  
+         <div class="input-group">
+          <input type="password" name="password" class="form-control" placeholder="Password" aria-describedby="basic-addon1">
+         </div>
+	    </div>
+	   </div>
+	  <div class="divider"> </div>
+	  <div class="settings log-in-button">
+	   <div class="col-md-4"> 
+	  	<div class="divider"> </div>
+	   </div>
+       <div class="col-md-8">	 
+		<button type="submit" class="btn btn-lg btn-success btn-log-in">Log In!</button>  	   
+       <div class="create-account-link"><a href="{% url 'registration'%}"> create new account</a></div>	  
+	   </div>
+          </form>
+	  </div>
+
+{% endblock %}
+
+
+

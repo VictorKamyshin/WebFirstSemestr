@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://getbootstrap.com/examples/starter-template/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    {% load staticfiles %}
+    <link href="{% static "Starter Template for Bootstrap_files/bootstrap.min.css" %}" rel="stylesheet">
+   <!-- <link href="Starter Template for Bootstrap_files/bootstrap.min.css" rel="stylesheet"> -->
+    {% load staticfiles %}
+    <link href="{% static "Starter Template for Bootstrap_files/MyCss.css" %}" rel="stylesheet">
+	</head>
+
+  <body>
+
+
+{% user.is_authenticated  %}
+<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'index' %}"> <p> AskPupkin </p> </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+		 <form class="navbar-form navbar-left" action = "{% url 'hot' %}">
+		    <div class="form-group">
+            <input type="text" placeholder="Search" class="form-control">
+			<form action = "{% url 'hot' %}"><button type="submit" class="btn ">Search</button></form>
+            </div> 	
+		 </form>
+ <form class="navbar-form navbar-left" action = "{% url 'ask_question' %}"> <button type="submit" class="btn ">Ask!</button></form>
+         <form class="navbar-form navbar-right" action = "{% url 'profile' %}"> 	
+		 <div class="col-md-2">
+            <img src="/static/media/{{user.users_profile.avatar}}" class="img-circle profile-avatar">
+			</div>
+			<div class="col-md-10">
+			<div style="width:270px">
+                         <div class="col-md-4">
+			  <a href="{% url 'profile' %}"><label class="navbar-username"> <font color = "white"> {{user.username}}</font></label></a> </div>
+                         <div class="col-md-4">
+			  <form action = "{% url 'profile' %}"><button type="submit" class="btn btn-info navbar-btn-userblock">Settings</button></form></div>
+                         <div class="col-md-4">
+<span><form action = "{% url 'logout' %}">
+            <input type="hidden" name="next" value="{{c_url}}" />
+<button type="submit" class="btn btn-danger navbar-btn-userblock my-btn">log out</button></form></span>
+</div>
+			</div>
+			</div>
+          </form>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+
+{% else %}
+ <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'index' %}"> <p> AskPupkin </p> </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+		 <form class="navbar-form navbar-left" action = "{% url 'hot' %}" >
+		    <div class="form-group">
+            <input type="text" placeholder="Search" class="form-control">
+			 <button type="submit" class="btn ">Search </button>
+            </div> 	
+		 </form>
+ <form class="navbar-form navbar-left" action = "{% url 'ask_question' %}"> <button type="submit" class="btn ">Ask!</button></form>
+         <form class="navbar-form navbar-right" action = "{% url 'registration' %}" > 
+<button type="submit" class="btn btn-info">Registration</button>
+          </form>
+         <form class="navbar-form navbar-right"  action = "{% url 'login' %}" method = "get"> 
+            <input type="hidden" name="next" value="{{c_url}}" />	
+            <button type="submit" class="btn btn-success" >  Log in </button>  
+          </form>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+{% endif %}
+
+     <div class="my-header">
+   </div><!-- /.container  <div class="row myclass" > -->
+	<div class="col-md-8 main-columns">
+           
+{% block content %}{% endblock %}
+ <div class="mainpage-pagination">
+      <nav>
+       {%block paginator%}{% endblock %} 
+<!--
+<div class="pagination">
+    <span class="step-links">
+        {% if questions.has_previous %}
+            <a href="?page={{ questions.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ questions.number }} of {{ questions.paginator.num_pages }}.
+        </span>
+
+        {% if questions.has_next %}
+            <a href="?page={{ questions.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+-->
+
+
+
+<!-- 
+       <ul class="pagination pagination-sm">
+        <li>
+         <a href="#" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+         </a>
+        </li>
+        <li><a href="1">1</a></li>
+        <li><a href="2">2</a></li>
+        <li><a href="3">3</a></li>
+        <li><a href="4">4</a></li>
+        <li><a href="http://localhost/index/5">5</a></li>
+        <li>
+         <a href="#" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+         </a>
+        </li>
+       </ul>
+      </nav>-->
+     </div>	   
+	</div>
+	<div class="col-md-4 page-left-part">
+     <p class="lead">Tags</p> 	
+	  <div class="tags-cloud"> 
+       <div class="c3">
+        <div class="outer"> 
+
+    {% for tag in best_tags %}
+    <div class="tags-cloud-tag">
+        {% if tag.tag_size == 0 %}<font class="medium-size-tag">
+        {% endif %} 
+        {% if tag.tag_size == 1 %}<font class="big-size-tag">
+        {% endif %}
+        {% if tag.tag_size == 2 %}<font class="very-big-size-tag">
+        {% endif %}
+        <a href="{% url 'tag'%}/{{tag.tag_text}}">
+        {% if tag.tag_color == 0 %}<font color="green">
+        {% endif %} 
+        {% if tag.tag_color == 1 %}<font color="blue">
+        {% endif %}
+        {% if tag.tag_color == 2 %}<font color="red">
+        {% endif %}
+        {{tag.tag_text}}</font></a></font></div> 
+    {% endfor %}
+
+
+
+			  
+        </div> 
+       </div>
+	  </div>
+	  <div class="settings-divider"> </div>
+	  <div class="Best-member-list"> 
+       <p class="lead">Best Members</p> 
+
+
+<ul class="list-unstyled">
+    {% for member in members %}
+		 <li> <a href="{%url 'another_user' %}{{member.member}}"><p><u> {{ member.member }} </u></p></a> </li>
+    {% endfor %}
+</ul> 
+
+
+	   </div>  <!--закончился контейнер с лучшими участниками---->
+	</div>
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+   $('.btn-like').click(function() {
+        var $btn = $(this);
+        var qid = $(this).data('q_id');
+        $.ajax({
+            type: 'POST',
+            url: '/like/',
+            data: {val: qid}
+        }).done(function(resp) {
+            aler(resp);    
+            });  
+    }); </script>  -->
+    <script type="text/javascript" src="/static/js/jquery-1.12.3.min.js"></script>
+    <script type="text/javascript" src="/static/js/my_first_script.js"></script> 
+    <script type="text/javascript" src="/static/js/correct_answ.js"></script> 
+    <script type="text/javascript" src="/static/js/answ_liker.js"></script> 
+{% block my_script %} {% endblock %}
+</body></html>

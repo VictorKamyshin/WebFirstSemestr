@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+{% extends "header.html" %}
+{% block content%}
+
+<p class="lead my-lead">Registration</p> 
+<div class="hot-header">
+</div>
+         <form action="{% url 'registration' %}" method="POST"> {% csrf_token %}
+	  <div class="divider"> </div>
+          {% for field in form %}  
+        <div class="divider"> </div>
+        <div class="settings settings-not-first-part">
+	   <div class="col-md-4"> 
+	    <div>
+	     <label class="my-label" for="id_{{ field.name }}"> {{field.label}}</label>
+	    </div>
+	   </div>
+       <div class="col-md-5">	  
+        <div class="input-group">
+         {{field}}
+        </div>
+	   </div>
+	  </div>
+       <div class="col-md-3">
+        <div>
+        <label>{{field.errors}}</label>
+        </div>
+        </div> 
+	  <div class="divider"> </div>
+	{% endfor %} 
+	    <div class="settings settings-not-first-part">
+	     <div class="col-md-4"> 
+	     </div>
+             <div class="col-md-8">	  
+	      <button type="submit" class="btn btn-lg btn-success btn-register">Register!</button> 	   
+	     </div>
+            </form>
+	   </div>
+{% endblock %}
+
+
+
+{% block best_tags %}
+    {% for tag in best_tags %}
+    <div class="tags-cloud-tag">
+        {% if tag.tag_size == 0 %}<font class="medium-size-tag">
+        {% endif %} 
+        {% if tag.tag_size == 1 %}<font class="big-size-tag">
+        {% endif %}
+        {% if tag.tag_size == 2 %}<font class="very-big-size-tag">
+        {% endif %}
+        <a>
+        {% if tag.tag_color == 0 %}<font color="green">
+        {% endif %} 
+        {% if tag.tag_color == 1 %}<font color="blue">
+        {% endif %}
+        {% if tag.tag_color == 2 %}<font color="red">
+        {% endif %}
+        {{tag.tag_text}}</font></a></font></div> 
+    {% endfor %}
+{% endblock %}
+
+
+{% block best_member%}
+<ul class="list-unstyled">
+    {% for member in members %}
+		 <li> <a><p><u> {{ member.member }} </u></p></a> </li>
+    {% endfor %}
+</ul> 
+{% endblock %}
+
+

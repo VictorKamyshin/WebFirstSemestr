@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+{% extends "header.html" %}
+{% block content%}
+
+<p class="lead my-lead">LOGIN {{temp}}</p> 
+<div class="hot-header">
+</div>
+
+       <div class="settings log-in-columns">
+        <form action="login?next={{temp}}" method="POST">  {% csrf_token %}
+          {% for field in form %}  
+<div class="divider"> </div>
+        <div class="settings settings-not-first-part">
+	   <div class="col-md-4"> 
+	    <div>
+	     <label class="my-label" for="id_{{ field.name }}"> {{field.label}}</label>
+	    </div>
+	   </div>
+       <div class="col-md-5">	  
+        <div class="input-group">
+         {{field}}
+        </div>
+	   </div>
+	  </div>
+       <div class="col-md-3">
+        <div>
+        <label>{{field.errors}}</label>
+        </div>
+        </div> 
+	  <div class="divider"> </div>
+	{% endfor %} 
+	  <div class="divider"> </div>
+	  <div class="settings log-in-button">
+	   <div class="col-md-4"> 
+	  	<div class="divider"> </div>
+	   </div>
+       <div class="col-md-8">	 
+		<button type="submit" class="btn btn-lg btn-success btn-log-in">Log In!</button>  	   
+       <div class="create-account-link"><a href="{% url 'registration'%}"> create new account</a></div>	  
+	   </div>
+          </form>
+	  </div>
+	  </div>
+{% endblock %}
+
+
+

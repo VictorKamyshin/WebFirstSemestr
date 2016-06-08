@@ -1,0 +1,389 @@
+from django.shortcuts import render, render_to_response, redirect
+from django.http import HttpResponse
+from django.core.context_processors import csrf
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from ask.models import Question, Tag, Answer, Profile
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate as dj_authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login as auth_login, logout
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from ask.forms import ProfileForm, LoginForm, ProfileEditForm, InputQuestionForm, InputAnswerForm
+import json
+import requests
+
+# Create your views here.
+
+def hello(request):
+    return HttpResponse('hello')
+
+@csrf_exempt
+def paramtest(request):
+    my_response=''
+    if request.method == 'GET':
+        params = request.GET.keys()   
+    if request.method == 'POST':
+        params = request.POST.keys()
+    i=0
+    while i < len(params):
+        my_response = my_response + '  '
+        my_response = my_response + params[i]
+        i = i +1     
+    return HttpResponse('\n' + my_response + '\n')
+
+def index(request):
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)  
+    my_question = paginate( Question.objects.best(), request)
+    my_answ = Answer.objects.all()
+    url = request.get_full_path()
+    return render(request, 'index.html', { 'questions':  my_question , 'members': best_members, 'best_tags': best_tags, 'user':request.user, 'c_url':url})
+
+def give_me_answer(request):
+    a_id = request.GET.get('a_id')
+    my_a = Answers.objects.get(id=a_id)
+    return HttpResponse(json.dumps({'text':my_a.text}), content_type='application/json')
+
+def answ_status_change(request):
+    c_user = request.user
+    a_id = request.POST.get('val')
+    status = request.POST.get('status')
+    cur_answ = Answer.objects.get(id = a_id)
+    if(status == "1"):
+        cur_answ.status = True
+        cur_answ.save()
+        return HttpResponse(json.dumps({'status':'ok', 'score' : True}), content_type='application/json')
+    else:
+        cur_answ.status = False
+        cur_answ.save()
+        return HttpResponse(json.dumps({'status':'ok', 'score' : False}), content_type='application/json')
+ 
+def like(request):
+    c_user = request.user
+    qid = request.POST.get('val')
+    Cur_q = Question.objects.get(id=qid)
+    c_type = request.POST.get('type')
+    if(c_type == "like"):
+        if( Cur_q.DisLiked_users.filter(id = c_user.id).exists()):
+            Cur_q.DisLiked_users.remove(c_user)
+            Cur_q.save()
+            return HttpResponse(json.dumps({'status':'ok_dislike_removed', 'val':Cur_q.Liked_users.count()-Cur_q.DisLiked_users.count()}), content_type='application/json')
+        else:
+	    try:
+		Cur_q.Liked_users.add(c_user)
+		Cur_q.save()
+                return HttpResponse(json.dumps({'status':'ok_like_added', 'val':Cur_q.Liked_users.count()-Cur_q.DisLiked_users.count()}), content_type='application/json')
+            except:
+                qid = 123
+    if(c_type == 'hate'):
+        if( Cur_q.Liked_users.filter(id = c_user.id).exists()):
+            Cur_q.Liked_users.remove(c_user)
+            Cur_q.save()
+            return HttpResponse(json.dumps({'status':'ok_like_removed', 'val':Cur_q.Liked_users.count()-Cur_q.DisLiked_users.count()}), content_type='application/json')
+        else:
+	    try:
+		Cur_q.DisLiked_users.add(c_user)
+		Cur_q.save()
+                return HttpResponse(json.dumps({'status':'ok_dislike_added', 'val':Cur_q.Liked_users.count()-Cur_q.DisLiked_users.count()}), content_type='application/json')
+            except:
+                qid = 123
+    return HttpResponse(json.dumps({'status':'something go wrong', 'val':Cur_q.Liked_users.count()-Cur_q.DisLiked_users.count()}), content_type='application/json')
+
+
+def answ_like(request):
+    c_user = request.user
+    aid = request.POST.get('val')
+    Cur_a = Answer.objects.get(id=aid)
+    c_type = request.POST.get('type')
+    if(c_type == "like"):
+        if( Cur_a.DisLiked_users.filter(id = c_user.id).exists()):
+            Cur_a.DisLiked_users.remove(c_user)
+            Cur_a.save()
+            return HttpResponse(json.dumps({'status':'ok_dislike_removed', 'val':Cur_a.Liked_users.count()-Cur_a.DisLiked_users.count()}), content_type='application/json')
+        else:
+	    try:
+		Cur_a.Liked_users.add(c_user)
+		Cur_a.save()
+                return HttpResponse(json.dumps({'status':'ok_like_added', 'val':Cur_a.Liked_users.count()-Cur_a.DisLiked_users.count()}), content_type='application/json')
+            except:
+                aid = 123
+    if(c_type == 'hate'):
+        if( Cur_a.Liked_users.filter(id = c_user.id).exists()):
+            Cur_a.Liked_users.remove(c_user)
+            Cur_a.save()
+            return HttpResponse(json.dumps({'status':'ok_like_removed', 'val':Cur_a.Liked_users.count()-Cur_a.DisLiked_users.count()}), content_type='application/json')
+        else:
+	    try:
+		Cur_a.DisLiked_users.add(c_user)
+		Cur_a.save()
+                return HttpResponse(json.dumps({'status':'ok_dislike_added', 'val':Cur_a.Liked_users.count()-Cur_a.DisLiked_users.count()}), content_type='application/json')
+            except:
+                qid = 123
+    return HttpResponse(json.dumps({'status':'something go wrong', 'val':Cur_a.Liked_users.count()-Cur_a.DisLiked_users.count()}), content_type='application/json')
+
+
+def hot(request):
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)  
+    my_question = paginate( Question.objects.hot(), request )
+    url = request.get_full_path() 
+    return render(request, 'hot.html', { 'questions': my_question , 'members': best_members, 'best_tags': best_tags, 'user':request.user, 'c_url':url})
+
+def tag(request):
+    my_tag = request.get_full_path()[5:]
+    if my_tag.find('?') > 0 :
+        my_tag = my_tag[:my_tag.find('?')] 
+    best_members = member_manager(5)
+    questions = tag_question_manager(9, my_tag)
+    best_tags = tag_manager(9)  
+    my_question = paginate( Question.objects.by_tag(my_tag), request )
+    url = request.get_full_path() 
+    return render(request, 'tag.html', { 'questions': my_question , 'members': best_members, 'best_tags': best_tags, 'tag': my_tag,'user':request.user, 'c_url':url})
+
+
+def question(request):
+    q_number = request.get_full_path()[10:]
+    my_question = Question.objects.get(id=q_number)
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)
+    best_members.append({ 'member': 'member' + str(q_number) })
+    my_answers = Answer.objects.answ(q_number)
+    url = request.get_full_path()
+    if request.user.is_authenticated():
+        if request.method == 'POST':
+           form = InputAnswerForm(request.POST)
+           if form.is_valid():
+               text    = form.cleaned_data.get('Text')
+               new_a = Answer.objects.create(text=text, question = my_question, authors = user ) 
+               requests.post('http://localhost/pub?id='+str(q_number), json.dumps({'text':new_a.text, 'id': new_a.id, "user_id" : user.id, "UserAvatar": user.users_profile.avatar.path[25:]}))   
+               ' str(new_a.id)'
+               return HttpResponseRedirect('http://localhost/question/'+str(my_question.id))
+        else:
+            form = InputAnswerForm()
+    else: 
+        form = []
+    return render(request, 'question_answers.html', { 'questions': my_question , 'members': best_members, 'best_tags': best_tags, 'answers': my_answers, 'user':request.user, 'c_url':url, 'form':form})
+
+def login(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('http://localhost')  
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)
+    tmp = request.GET.get("next","/")
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            my_username = request.POST.get('login', '')
+            my_password = request.POST.get('password1', '')
+            user = dj_authenticate(username = my_username, password = my_password)
+            if user:
+                auth_login(request, user)
+                return HttpResponseRedirect('http://localhost'+tmp)
+    else: 
+        form = LoginForm(request.POST)
+    return render(request, 'login.html', { 'members': best_members, 'best_tags': best_tags,'user':request.user, 'temp': tmp, 'form': form })
+
+def registration(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('http://localhost')      
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)
+    if request.method == 'POST':
+        form = ProfileForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('login')
+            email    = form.cleaned_data.get('email')
+            nickname = form.cleaned_data.get('nick')
+            password = form.cleaned_data.get('password1')
+            avatar  = form.cleaned_data.get('avatar')
+            user = User.objects.create_user(username=username, email=email, password=password)
+            Profile.objects.create(user=user, nickname = nickname)
+            return HttpResponseRedirect('http://localhost/')
+    else:
+        form = ProfileForm()
+    return render(request, 'registration.html', { 'members': best_members, 'best_tags': best_tags, 'user':request.user, 'form': form})
+
+@login_required
+def my_logout(request):
+    logout(request)
+    tmp = request.GET.get("next","/")
+    return HttpResponseRedirect('http://localhost'+tmp)
+
+
+@login_required
+def ask(request):
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)
+    url = request.get_full_path()
+    if request.method == 'POST':
+        form = InputQuestionForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data.get('Title')
+            text    = form.cleaned_data.get('Text')
+            tag_title = form.cleaned_data.get('Tags')
+            tag, created = Tag.objects.get_or_create(title = tag_title)
+#            i=0
+#            my_tags = []
+#            while 0 < len(tags):
+#                my_tag.find('?')
+#                my_response = my_response + params[i]
+#                i = i +1 
+            q = Question.objects.create(title = title, text = text, authors = user)
+            q.question_tags.add(tag)
+            return HttpResponseRedirect('http://localhost/question/'+str(q.id))
+    else:
+        form = InputQuestionForm()
+    return render(request, 'ask.html', { 'members': best_members, 'best_tags': best_tags,'user':request.user, 'c_url':url, 'form':form})
+
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, request.FILES)
+        if form.is_valid():
+            username = form.cleaned_data.get('login')
+            email    = form.cleaned_data.get('email')
+            nickname = form.cleaned_data.get('nick')
+            avatar  = request.FILES['Avatar'] #form.cleaned_data.get('avatar')
+            user = request.user
+            profile = Profile.objects.get(user=user)
+            if username:  
+                user.username = username
+            if email:
+                user.email = email  
+            user.save()#(update_fields = ['username', 'email'])
+            if nickname:
+                profile.nickname = nickname
+            profile.avatar = avatar
+            if avatar:
+                profile.save()#(update_fileds = ['nickname', 'avarat_url'] )    
+            return HttpResponseRedirect('profile')
+    else:
+        form = ProfileEditForm()
+    url = request.get_full_path()  
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)
+    return render(request, 'profile.html', { 'members': best_members, 'best_tags': best_tags, 'user':request.user, 'c_url':url, 'form':form})
+
+@login_required
+def another_user(request):
+    user1 = request.get_full_path()[14:]
+    username = []
+    username.append({'name':user1})
+    best_members = member_manager(5)
+    best_tags = tag_manager(9)
+    url = request.get_full_path()
+    return render(request, 'another_user.html', { 'members': best_members, 'best_tags': best_tags, 'names': username, 'user':request.user, 'c_url':url})
+
+def answers_question_manager(q_number):
+    question = []
+    tags = []
+    for j in xrange(1,4) :
+        tags.append({ 
+            'tag': 'tag' + str(j) + str(0)
+        })
+    question.append({ 'title': 'title ' + q_number, 'text' : 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'question_likes' : 100, 'question_tags': tags })
+    return question
+
+
+
+def answer_manager(a_number):
+    my_answers = []
+    for i in xrange(1, a_number+1) :
+        my_answers.append({
+            'answer_text' : str(i) + ' bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla',
+            'answer_likes' : 10 + i
+        })
+    return my_answers
+
+def tag_manager(t_number):
+    best_tags = []
+    for i in xrange(1,t_number+1) :
+        best_tags.append({
+            'tag_text': 'text' + str(i),
+            'tag_color': ( i // 3)  % 3,
+            'tag_size': (i + 1 ) % 3 
+        })
+    return best_tags
+
+def member_manager(m_number) :
+    best_members = []
+    for i in xrange(1,6) :
+        best_members.append({
+            'member': 'member' + str(i),  
+        })
+    return best_members
+
+def hot_question_manager(q_number):
+    questions = []
+    for i in xrange(1,q_number+1) :
+        tags = []
+        for j in xrange(1,4) :
+            tags.append({ 
+                'tag': 'tag' + str(j) + str(i)
+            })      
+        questions.append({
+            'title': 'title' + str(i),
+            'text': str(i) + ' Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque varius laoreet condimentum. Etiam sagittis id neque varius fringilla.  ',  
+            'questionlike': 20 - i,
+            'question_answers_number': i,
+            'question_tags':tags  
+        })
+    return questions
+
+def question_manager(q_number):
+    questions = []
+    for i in xrange(1,q_number+1) :
+        tags = []
+        for j in xrange(1,4) :
+            tags.append({ 
+                'tag': 'tag' + str(j) + str(i)
+            })      
+        questions.append({
+            'title': 'title' + str(i),
+            'text': str(i) + ' Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque varius laoreet condimentum. Etiam sagittis id neque varius fringilla.  ',  
+            'questionlike': 10 + i,
+            'question_answers_number': i,
+            'question_tags':tags  
+        })
+    return questions
+
+
+def tag_question_manager(q_number, tag):
+    questions = []
+    for i in xrange(1,q_number+1) :
+        tags = []
+        tags.append({
+            'tag': tag,
+        })
+        for j in xrange(1,4) :
+            tags.append({ 
+                'tag': 'tag' + str(j) + str(i)
+            })      
+        questions.append({
+            'title': 'title' + str(i),
+            'text': str(i) + ' Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque varius laoreet condimentum. Etiam sagittis id neque varius fringilla.  ',  
+            'questionlike': 10 + i,
+            'question_answers_number': i,
+            'question_tags':tags,
+            'question_id': i  
+        })
+    return questions
+
+
+def paginate(object_list, request):
+    paginator = Paginator(object_list, 2) # Show 3 contacts per page
+
+    page = request.GET.get('page')
+    try:
+        contacts = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        contacts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        contacts = paginator.page(paginator.num_pages)
+
+    return contacts

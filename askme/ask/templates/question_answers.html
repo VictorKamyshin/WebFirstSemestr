@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+{% extends "header.html" %}
+{% block content%}
+
+
+ <div class="col-md-2">
+ </div>
+ <div class="col-md-10">
+	   <div><h2> {{questions.title}} </h2></div>
+</div>
+  <div class="col-md-2">
+	  <div class="col-md-2">
+             {% load staticfiles %}
+	   <img src="/static/media/{{questions.authors.users_profile.avatar}}" class="img-circle profile-avatar-mainpage-question">
+	  </div>
+
+	  </div>
+      <div class="col-md-10 question-answers-main-question">
+	   <div>{{questions.text}}</div>
+     </div>
+      <div class="col-md-2">
+   {% load staticfiles %}
+      <a><img src="{% static "img/like.png" %}" class="btn-like" data-q_id="{{questions.id}}" data-type="like"></a> 
+	  <span class="like-counter" id = "like-counter-{{questions.id}}"> {{questions.get_like}} </span>
+    {% load staticfiles %}
+      <a><img src="{% static "img/dislike.png" %}" class="btn-like"  data-q_id="{{questions.id}}" data-type="hate"></a>
+       </div>
+       <div class="col-md-10">
+	   <span class="question-answers-tags-header"> Tags:</span>
+           {% for question_tag in questions.question_tags.all %}  
+          <span class="question-answers-tags-tag"><b><a href="{% url 'tag'%}/{{question_tag.title}}"> {{ question_tag.title}}</a></b></span>
+          {% endfor %}     		   
+        </div>
+
+
+<div style = "display:none"> 
+  <div id = "clearanswer" >
+    <div class="col-md-2">
+        <div id="shown-stat-{{answer.id}}" style="display: none;">
+      {% load staticfiles %}
+          <img src="{% static "img/Green.png" %}"  >
+        </div> 
+    </div>
+    <div class="col-md-10">
+      <div class="question-answers-answer-enviroment">     
+	<div class="col-md-2">
+          {% load staticfiles %}
+	  <img src="/static/media/{{answer.authors.users_profile.avatar}}" class="img-circle profile-avatar-mainpage-question">
+	</div>
+        <div class="col-md-10">
+	  <div class="answer-text"></div>
+        </div>
+        {% load staticfiles %}
+        <a><img src="{% static "img/like.png" %}" class="btn-like-answ" test = "123" id = "answ-btn-like" data-a_id="" data-type="like"></a> 
+	<span class="like-counter" id = "answ-like-counter-" > 0 </span> 
+        {% load staticfiles %}
+        <a><img src="{% static "img/dislike.png" %}" class="btn-dislike-answ" id = "answ-btn-dislike" data-a_id="" data-type="hate"></a>
+        <span class="answer-checkbox">
+          {% if user.id = answer.question.authors.id %} 
+          <input class = "status-checkbox" data-a_id = "{{ answer.id }}" type="checkbox"> Correct!
+          {% endif %}
+      	</span>	   
+      </div> 
+    </div>
+   </div>
+  </div>
+
+
+
+{% for answer in answers %}
+       <div id = "myanswers{{answer.id}}"> 	 
+	<div class="col-md-2 col-sd-1">
+          {% if answer.status %} 
+               <div id="shown-stat-{{answer.id}}" style="display: block;">
+            {% else %}
+               <div id="shown-stat-{{answer.id}}" style="display: none;">
+              {% endif %}
+             {% load staticfiles %}  <!--{{answer.id}} -->
+             <img src="{% static "img/Green.png" %}"  >
+             </div> 
+        </div>
+        <div class="col-md-10 col-sd-11">
+         <div class="question-answers-answer-enviroment">     
+	  <div class="col-md-2">
+             {% load staticfiles %}
+	   <img src="/static/media/{{answer.authors.users_profile.avatar}}" class="img-circle profile-avatar-mainpage-question">
+	  </div>
+          <div class="col-md-10">
+	   <div class="answer-text"> {{answer.text}}</div>
+          </div>
+    {% load staticfiles %}
+      <a><img src="{% static "img/like.png" %}" class="btn-like-answ" id = "answ-btn-like" data-a_id="{{answer.id}}" data-type="like"></a> 
+	  <span class="like-counter" id = "answ-like-counter-{{answer.id}}" > {{answer.get_like}} </span> 
+    {% load staticfiles %}
+      <a><img src="{% static "img/dislike.png" %}" class="btn-like-answ" id = "answ-btn-like" data-a_id="{{answer.id}}" data-type="hate"></a>
+          <span class="answer-checkbox">
+           {% if user.id = answer.question.authors.id %} 
+             <input class = "status-checkbox" data-a_id = "{{ answer.id }}" type="checkbox" {% if answer.status = True %} checked {% endif %}> Correct!
+           {% endif %}
+      	  </span>	   
+         </div> 
+        </div>
+      </div>
+ {% endfor %}
+<div id = "myanswers">
+</div>
+{% for tmp in islog %}	
+{% if tmp.reg == 1 %}
+<form  action="{% url 'question_answers'%}{{questions.id}}" method="POST">  {% csrf_token %}
+{% for field in form %}  
+        <div class="divider"> </div>
+        <div class="settings settings-not-first-part">
+	   <div class="col-md-2"> 
+	   </div>
+       <div class="col-md-6">	  
+        <div class="input-group">
+         {{field}}
+        </div>
+	   </div>
+	  </div>
+	  <div class="divider"> </div>
+{% endfor %} 
+	  <div class="divider"> </div>
+     <div class="col-md-2"></div>
+     <div class="col-md-6">
+        <button type="submit" class="btn btn-lg btn-success" style = "margin-top:20px">Answer!</button>
+     </div>
+</form>
+{% endif %}	   
+{% endfor %}
+{% endblock %}
+
+{% block best_tags %}
+    {% for tag in best_tags %}
+    <div class="tags-cloud-tag">
+        {% if tag.tag_size == 0 %}<font class="medium-size-tag">
+        {% endif %} 
+        {% if tag.tag_size == 1 %}<font class="big-size-tag">
+        {% endif %}
+        {% if tag.tag_size == 2 %}<font class="very-big-size-tag">
+        {% endif %}
+        <a>
+        {% if tag.tag_color == 0 %}<font color="green">
+        {% endif %} 
+        {% if tag.tag_color == 1 %}<font color="blue">
+        {% endif %}
+        {% if tag.tag_color == 2 %}<font color="red">
+        {% endif %}
+        {{tag.tag_text}}</font></a></font></div> 
+    {% endfor %}
+{% endblock %}
+
+
+{% block best_member%}
+<ul class="list-unstyled">
+    {% for member in members %}
+		 <li> <a><p><u> {{ member.member }} </u></p></a> </li>
+    {% endfor %}
+</ul> 
+{% endblock %}
+
+{% block my_script %}
+    <script type="text/javascript" src="/static/js/getComet.js"></script> 
+{% endblock %}
